@@ -1,15 +1,18 @@
 import os
 import asyncio
 
+from dotenv import load_dotenv
 from flask import Flask, request
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 import uvicorn
 from asgiref.wsgi import WsgiToAsgi
 
-import os
+# Load variables from .env
+load_dotenv()
 
-TOKEN = os.environ["8932718398:AAGFeL5lV6ICzEqauGIKm-GV7MUaaUwoxrk"]
+# Get Telegram bot token from .env
+TOKEN = os.environ["8932718398:AAEbOiSIa_yZGA1LGWBxxT0zlL7TeIDeQ-0"]
 
 telegram_app = Application.builder().token(TOKEN).build()
 
@@ -37,8 +40,14 @@ def home():
 @flask_app.post("/telegram")
 async def telegram_webhook():
     data = request.get_json(force=True)
-    update = Update.de_json(data, telegram_app.bot)
+
+    update = Update.de_json(
+        data,
+        telegram_app.bot
+    )
+
     await telegram_app.process_update(update)
+
     return "OK"
 
 
@@ -48,17 +57,25 @@ async def main():
 
     port = int(os.environ.get("PORT", 10000))
 
+    external_url = os.environ.get("RENDER_EXTERNAL_URL")
+
+    if not external_url:
+        raise RuntimeError(
+            "RENDER_EXTERNAL_URL belum tersedia."
+        )
+
     await telegram_app.bot.set_webhook(
-        url=f"{os.environ['RENDER_EXTERNAL_URL']}/telegram"
+        url=f"{external_url}/telegram"
     )
 
     config = uvicorn.Config(
         WsgiToAsgi(flask_app),
         host="0.0.0.0",
-        port=port,
+        port=port
     )
 
     server = uvicorn.Server(config)
+
     await server.serve()
 
 
