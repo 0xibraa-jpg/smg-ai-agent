@@ -7,6 +7,8 @@ from telegram.ext import Application, CommandHandler, ContextTypes
 import uvicorn
 from asgiref.wsgi import WsgiToAsgi
 
+import os
+
 TOKEN = os.environ["8932718398:AAGFeL5lV6ICzEqauGIKm-GV7MUaaUwoxrk"]
 
 telegram_app = Application.builder().token(TOKEN).build()
